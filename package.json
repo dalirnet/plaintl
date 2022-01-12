@@ -1,0 +1,16 @@
+{
+  "name": "plaintl",
+  "version": "1.0.0",
+  "description": "Plain telegram",
+  "main": "index.js",
+  "type": "module",
+  "repository": "https://github.com/dalirnet/plaintl.git",
+  "author": "Amir Reza Dalir <dalirnet@gmail.com>",
+  "license": "GPL-3.0",
+  "dependencies": {
+    "envfile": "^6.17.0",
+    "input": "^1.0.1",
+    "lodash": "^4.17.21",
+    "telegram": "^2.3.0"
+  }
+}

@@ -1,2 +1,2 @@
 # plaintl
-Plain telegram
+Plain telegram client
