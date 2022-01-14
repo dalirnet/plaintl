@@ -14,10 +14,10 @@ yarn add plaintl
 
 ```javascript
 // esm
-import { start, eventEmitter } from "plaintl"
+import { startSession, eventEmitter } from "plaintl"
 
 // cjs
-const { start, eventEmitter } = require("plaintl")
+const { startSession, eventEmitter } = require("plaintl")
 ```
 
 ### Preparation
@@ -52,10 +52,10 @@ Start `PlainTL` session.
 
 ```javascript
 // async
-const listener = await start()
+const listener = await startSession()
 
 // sync
-start().then((listener) => {})
+startSession().then((listener) => {})
 ```
 
 Listen to `Telegram` [Update](#update-events) events.

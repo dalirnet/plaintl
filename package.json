@@ -1,6 +1,6 @@
 {
     "name": "plaintl",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "A plain telegram listener",
     "main": "./src/index.mjs",
     "bin": {
@@ -18,7 +18,8 @@
     "keywords": [
         "telegram",
         "tl-schema",
-        "mtproto"
+        "mtproto",
+        "plaintl"
     ],
     "repository": "https://github.com/dalirnet/plaintl.git",
     "author": "Amir Reza Dalir <dalirnet@gmail.com>",

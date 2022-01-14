@@ -21,26 +21,6 @@ const trimQuotation = (value) => _.trim(_.toString(value), ["'", '"'])
 const ENV_PATH = path.resolve("./.env")
 
 /**
- * Parsed object of the `.env` file.
- */
-const ENV = parse(fs.existsSync(ENV_PATH) ? fs.readFileSync(ENV_PATH) : "")
-
-/**
- * Preparing session of the last session from env object.
- */
-const session = new StringSession(trimQuotation(ENV.SESSION || ""))
-
-/**
- * Preparing api id from env object.
- */
-const apiId = _.toNumber(trimQuotation(ENV.API_ID))
-
-/**
- * Preparing api hash from env object.
- */
-const apiHash = trimQuotation(ENV.API_HASH)
-
-/**
  * Creating instance of event emitter.
  */
 const eventEmitter = new EventEmitter()
@@ -146,9 +126,33 @@ const initOnError = ({ message }) => {
  * @param {Boolean} [forceSMS=false] - forcing to receive phone code via SMS.
  * @returns {EventEmitter}
  */
-const start = (forceSMS = false) => {
+const startSession = (forceSMS = false) => {
     try {
+        /**
+         * Parsed object of the `.env` file.
+         */
+        const ENV = parse(fs.existsSync(ENV_PATH) ? fs.readFileSync(ENV_PATH) : "")
+
+        /**
+         * Preparing api id from env object.
+         */
+        const apiId = _.toNumber(trimQuotation(ENV.API_ID))
+
+        /**
+         * Preparing api hash from env object.
+         */
+        const apiHash = trimQuotation(ENV.API_HASH)
+
+        /**
+         * Preparing session of the last session from env object.
+         */
+        const session = new StringSession(trimQuotation(ENV.SESSION || ""))
+
+        /**
+         * Creating instance of TelegramClient.
+         */
         const telegramClient = new TelegramClient(session, apiId, apiHash)
+
         return telegramClient
             .start({
                 phoneNumber: initPhoneNumber,
@@ -189,4 +193,4 @@ const start = (forceSMS = false) => {
     }
 }
 
-export { start, eventEmitter }
+export { startSession, eventEmitter }
