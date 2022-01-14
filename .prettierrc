@@ -1,18 +1,5 @@
 {
     "semi": false,
     "tabWidth": 4,
-    "overrides": [
-        {
-            "files": ["*.js", "*.vue"],
-            "options": {
-                "singleQuote": true
-            }
-        },
-        {
-            "files": "*.json",
-            "options": {
-                "parser": "json-stringify"
-            }
-        }
-    ]
+    "printWidth": 120
 }
