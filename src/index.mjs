@@ -84,7 +84,6 @@ const initPhoneCode = (viaApp) => {
             process.exit(1)
         }
         eventEmitter.emit("RequiresPhoneCode", (phoneCode) => {
-            logger.info(`Phone code is '${phoneCode}'`)
             resolve(phoneCode)
         })
     })
@@ -105,7 +104,6 @@ const initPassword = (hint) => {
             process.exit(1)
         }
         eventEmitter.emit("RequiresPassword", (password) => {
-            logger.info(`Phone code is '${password}'`)
             resolve(password)
         })
     })
