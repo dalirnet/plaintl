@@ -1,16 +1,31 @@
 {
-  "name": "plaintl",
-  "version": "1.0.0",
-  "description": "Plain telegram",
-  "main": "index.js",
-  "type": "module",
-  "repository": "https://github.com/dalirnet/plaintl.git",
-  "author": "Amir Reza Dalir <dalirnet@gmail.com>",
-  "license": "GPL-3.0",
-  "dependencies": {
-    "envfile": "^6.17.0",
-    "input": "^1.0.1",
-    "lodash": "^4.17.21",
-    "telegram": "^2.3.0"
-  }
+    "name": "plaintl",
+    "version": "1.0.0",
+    "description": "A plain telegram listener",
+    "main": "./src/index.mjs",
+    "bin": {
+        "plaintl": "./cli.js"
+    },
+    "exports": {
+        ".": {
+            "import": "./dist/esm/index.mjs",
+            "require": "./dist/cjs/index.cjs"
+        }
+    },
+    "scripts": {
+        "rollup": "rollup --config"
+    },
+    "repository": "https://github.com/dalirnet/plaintl.git",
+    "author": "Amir Reza Dalir <dalirnet@gmail.com>",
+    "license": "GPL-3.0",
+    "devDependencies": {
+        "rollup": "^2.64.0",
+        "rollup-plugin-terser": "^7.0.2"
+    },
+    "dependencies": {
+        "input": "^1.0.1",
+        "telegram": "^2.3.0",
+        "envfile": "^6.17.0",
+        "lodash": "^4.17.21"
+    }
 }
