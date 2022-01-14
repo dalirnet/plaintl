@@ -21,6 +21,11 @@ const trimQuotation = (value) => _.trim(_.toString(value), ["'", '"'])
 const ENV_PATH = path.resolve("./.env")
 
 /**
+ * Parsed object of the `.env` file.
+ */
+const ENV = parse(fs.existsSync(ENV_PATH) ? fs.readFileSync(ENV_PATH) : "")
+
+/**
  * Creating instance of event emitter.
  */
 const eventEmitter = new EventEmitter()
@@ -129,19 +134,14 @@ const initOnError = ({ message }) => {
 const startSession = (forceSMS = false) => {
     try {
         /**
-         * Parsed object of the `.env` file.
-         */
-        const ENV = parse(fs.existsSync(ENV_PATH) ? fs.readFileSync(ENV_PATH) : "")
-
-        /**
          * Preparing api id from env object.
          */
-        const apiId = _.toNumber(trimQuotation(ENV.API_ID))
+        const apiId = _.toNumber(trimQuotation(ENV.API_ID || process.env.API_ID))
 
         /**
          * Preparing api hash from env object.
          */
-        const apiHash = trimQuotation(ENV.API_HASH)
+        const apiHash = trimQuotation(ENV.API_HASH || process.env.API_HASH)
 
         /**
          * Preparing session of the last session from env object.
@@ -172,7 +172,7 @@ const startSession = (forceSMS = false) => {
                 )
             })
             .then(() => {
-                logger.info("Modified env file for next usage")
+                logger.info("Modified env file for next session")
                 logger.info("Successfully connected")
             })
             .then(() => {
