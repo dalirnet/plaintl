@@ -4,17 +4,11 @@ const input = require("input")
 const { startSession, eventEmitter } = require("./dist/cjs/index.cjs")
 
 /**
- * Setting default env from public data on github
+ * Setting default API_ID and API_HASH from public data on github
  * https://github.com/zhukov/webogram/blob/master/app/js/lib/config.js
  */
-process.env.API_ID = "2496"
-process.env.API_HASH = "8da85b0d5bfe62527e5b244c209159c3"
-
-startSession().then((listener) => {
-    listener.on("UpdateShortMessage", (event) => {
-        console.log(event)
-    })
-})
+const API_ID = 2496
+const API_HASH = "8da85b0d5bfe62527e5b244c209159c3"
 
 eventEmitter
     .on("RequiresPhoneNumber", (phoneNumberEmitter) => {
@@ -32,3 +26,9 @@ eventEmitter
             passwordEmitter(password)
         })
     })
+
+startSession({ apiId: API_ID, apiHash: API_HASH }).then((listener) => {
+    listener.on("UpdateShortMessage", (event) => {
+        console.log(event)
+    })
+})

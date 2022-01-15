@@ -1,39 +1,26 @@
 import fs from "fs"
 import _ from "lodash"
 import path from "path"
+import dotenv from "dotenv"
 import EventEmitter from "events"
-import fsPromise from "fs/promises"
 import { TelegramClient } from "telegram"
-import { parse, stringify } from "envfile"
 import { Logger } from "telegram/extensions/index.js"
 import { StringSession } from "telegram/sessions/index.js"
 
 /**
- * Trimming `'` and `"` of string.
- * @param {String} value
- * @returns {String}
+ * Preparing env variables.
  */
-const trimQuotation = (value) => _.trim(_.toString(value), ["'", '"'])
-
-/**
- * Path of the `.env` file.
- */
-const ENV_PATH = path.resolve("./.env")
-
-/**
- * Parsed object of the `.env` file.
- */
-const ENV = parse(fs.existsSync(ENV_PATH) ? fs.readFileSync(ENV_PATH) : "")
-
-/**
- * Creating instance of event emitter.
- */
-const eventEmitter = new EventEmitter()
+dotenv.config()
 
 /**
  * Creating instance of logger.
  */
 const logger = new Logger()
+
+/**
+ * Creating instance of event emitter.
+ */
+const eventEmitter = new EventEmitter()
 
 /**
  * Preparing phone number.
@@ -126,32 +113,35 @@ const initOnError = ({ message }) => {
 /**
  * Creating instance of Telegram client to start connection.
  * Starting Telegram client with the last session or creating a new session with authentication parameters.
- * Adding session to modified env object.
  * Saving modified env object to env file for next usage.
- * @param {Boolean} [forceSMS=false] - forcing to receive phone code via SMS.
+ * @param {Object} option - Provider options.
+ * @param {Number} option.apiId - Telegram api id.
+ * @param {String} option.apiHash - Telegram api hsah.
+ * @param {Boolean} option.forceSMS - forcing to receive phone code via SMS.
  * @returns {EventEmitter}
  */
-const startSession = (forceSMS = false) => {
+const startSession = ({ apiId, apiHash, forceSMS = false } = {}) => {
     try {
         /**
-         * Preparing api id from env object.
+         * Path of the `.session` file.
          */
-        const apiId = _.toNumber(trimQuotation(ENV.API_ID || process.env.API_ID))
+        const sessionPath = path.resolve(".ptl.session")
 
         /**
-         * Preparing api hash from env object.
+         * Preparing api session from the last session.
          */
-        const apiHash = trimQuotation(ENV.API_HASH || process.env.API_HASH)
-
-        /**
-         * Preparing session of the last session from env object.
-         */
-        const session = new StringSession(trimQuotation(ENV.SESSION || ""))
+        const apiSession = new StringSession(
+            fs.existsSync(sessionPath) ? fs.readFileSync(sessionPath, "utf8") : process.env.API_SESSION || ""
+        )
 
         /**
          * Creating instance of TelegramClient.
          */
-        const telegramClient = new TelegramClient(session, apiId, apiHash)
+        const telegramClient = new TelegramClient(
+            apiSession,
+            _.toNumber(apiId || process.env.API_ID),
+            _.toString(apiHash || process.env.API_HASH)
+        )
 
         return telegramClient
             .start({
@@ -163,24 +153,14 @@ const startSession = (forceSMS = false) => {
                 forceSMS,
             })
             .then(() => {
-                return fsPromise.writeFile(
-                    ENV_PATH,
-                    stringify({
-                        ...ENV,
-                        SESSION: telegramClient.session.save(),
-                    })
-                )
+                return fs.promises.writeFile(sessionPath, telegramClient.session.save())
             })
             .then(() => {
-                logger.info("Modified env file for next session")
-                logger.info("Successfully connected")
-            })
-            .then(() => {
+                logger.info("Successfully connected and save session")
                 telegramClient.addEventHandler((event) => {
                     eventEmitter.emit(event.className, event)
                 })
-            })
-            .then(() => {
+
                 return eventEmitter
             })
             .catch(({ message }) => {

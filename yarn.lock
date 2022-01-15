@@ -229,15 +229,15 @@ domutils@^2.5.2:
     domelementtype "^2.2.0"
     domhandler "^4.2.0"
 
+dotenv@^12.0.3:
+  version "12.0.3"
+  resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-12.0.3.tgz#362b83f866dfed8e540deaa5bbcb3c8ab401dcb6"
+  integrity sha512-RlOysyzyGiABgDFgITo5fRnMV1QStdoVvkXhnxQc5Or/CiQo52s2Bh6DVMvzZsmFQ9IrNxYHOC/gdpNwHsitnQ==
+
 entities@^2.0.0:
   version "2.2.0"
   resolved "https://registry.yarnpkg.com/entities/-/entities-2.2.0.tgz#098dc90ebb83d8dffa089d55256b351d34c4da55"
   integrity sha512-p92if5Nz619I0w+akJrLZH0MX0Pb5DX39XOwQTtXSdQQOaYH03S1uIQp4mhOZtAXrxq4ViO67YTiLBo2638o9A==
-
-envfile@^6.17.0:
-  version "6.17.0"
-  resolved "https://registry.yarnpkg.com/envfile/-/envfile-6.17.0.tgz#f3063a1811ae4ec2cbc33e8f099add3beae960f6"
-  integrity sha512-RnhtVw3auDZeeh5VtaNrbE7s6Kq8BoRtGIzcbMpMsJ+wIpRgs5jiDG4gQjW+vfws5QPlizE57/fUU0Tj6Nrs8A==
 
 es-abstract@^1.18.5:
   version "1.19.1"

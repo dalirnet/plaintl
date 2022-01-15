@@ -1,6 +1,6 @@
 {
     "name": "plaintl",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "description": "A plain telegram listener",
     "main": "./src/index.mjs",
     "bin": {
@@ -29,9 +29,9 @@
         "rollup-plugin-terser": "^7.0.2"
     },
     "dependencies": {
+        "dotenv": "^12.0.3",
         "input": "^1.0.1",
-        "telegram": "^2.3.0",
-        "envfile": "^6.17.0",
-        "lodash": "^4.17.21"
+        "lodash": "^4.17.21",
+        "telegram": "^2.3.0"
     }
 }

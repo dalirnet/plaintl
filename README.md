@@ -20,17 +20,6 @@ import { startSession, eventEmitter } from "plaintl"
 const { startSession, eventEmitter } = require("plaintl")
 ```
 
-### Preparation
-
-Rename `.sample.env` to `.env` and then set your environment values.
-
-```bash
-API_ID="YOUR_API_ID"
-API_HASH="YOUR_API_HASH"
-```
-
-Obtain `API_ID` and `API_HASH` from [here](https://my.telegram.org/auth).
-
 ### Usage
 
 Listen to `Requires` events and then submit your values with emitter functions. _(only for the first session)_
@@ -44,18 +33,33 @@ eventEmitter
         phoneCodeEmitter("550055")
     })
     .on("RequiresPassword", (passwordEmitter) => {
-        passwordEmitter("my-password")
+        passwordEmitter("password")
     })
+    .on("RequiresFirstAndLastNames", (firstAndLastNamesEmitter) => {
+        firstAndLastNamesEmitter(["First name", "Last name"])
+    })
+```
+
+Preparing provider [options](https://github.com/dalirnet/plaintl/blob/main/src/index.mjs#L117-L120).
+
+> Obtain `API_ID` and `API_HASH` from [here](https://my.telegram.org/auth).
+
+```javascript
+const providerOptions = {
+    apiId: "API_ID",
+    apiHash: "API_HASH",
+    forceSMS: false,
+}
 ```
 
 Start `PlainTL` session.
 
 ```javascript
 // async
-const listener = await startSession()
+const listener = await startSession(providerOptions)
 
 // sync
-startSession().then((listener) => {})
+startSession(providerOptions).then((listener) => {})
 ```
 
 Listen to `Telegram` [Update](#update-events) events.
