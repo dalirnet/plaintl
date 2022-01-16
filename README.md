@@ -46,7 +46,7 @@ Preparing provider parameters.
 
 > For receive phone code via SMS set `apiForceSMS` to **_true_**.
 
-> For `loggerLevel`, one can select between **_error_** , **_warn_** , **_info_** , **_debug_** or **_none_**.
+> For `logLevel`, one can select between **_error_** , **_warn_** , **_info_** , **_debug_** or **_none_**.
 
 ```javascript
 const providerParameters = {
@@ -56,7 +56,7 @@ const providerParameters = {
 
     /* optional */
     apiForceSMS: false,
-    loggerLevel: "info",
+    logLevel: "info",
 }
 ```
 

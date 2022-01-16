@@ -18,20 +18,6 @@ dotenv.config()
 const eventEmitter = new EventEmitter()
 
 /**
- * Creating instance of logger.
- */
-const logger = new Logger()
-
-/**
- * Handling error and then rejecting main thread
- * @param {String} message
- */
-const handleErrorAndReject = (reject, message) => {
-    logger.error(message)
-    reject(new Error(message))
-}
-
-/**
  * Preparing phone number.
  * Emitting `RequiresPhoneNumber` event.
  * Waiting for emitting phone number.
@@ -40,7 +26,7 @@ const handleErrorAndReject = (reject, message) => {
 const initPhoneNumber = (reject) => {
     return new Promise((resolve) => {
         if (_.isEmpty(eventEmitter.listeners("RequiresPhoneNumber"))) {
-            handleErrorAndReject(reject, "You need to set a listener on 'RequiresPhoneNumber' event")
+            reject("You need to set a listener on 'RequiresPhoneNumber' event")
         }
         eventEmitter.emit("RequiresPhoneNumber", (phoneNumber) => {
             resolve(phoneNumber)
@@ -55,12 +41,12 @@ const initPhoneNumber = (reject) => {
  * @param {Boolean} viaApp
  * @returns {Promise}
  */
-const initPhoneCode = (reject, viaApp) => {
+const initPhoneCode = (reject) => {
     return new Promise((resolve) => {
         if (_.isEmpty(eventEmitter.listeners("RequiresPhoneCode"))) {
-            handleErrorAndReject(reject, "You need to set a listener on 'RequiresPhoneCode' event")
+            reject("You need to set a listener on 'RequiresPhoneCode' event")
         }
-        logger.info(`You will receive phone code via ${viaApp ? "App" : "SMS"}`)
+
         eventEmitter.emit("RequiresPhoneCode", (phoneCode) => {
             resolve(phoneCode)
         })
@@ -74,12 +60,11 @@ const initPhoneCode = (reject, viaApp) => {
  * @param {String} hint
  * @returns {Promise}
  */
-const initPassword = (reject, hint) => {
+const initPassword = (reject) => {
     return new Promise((resolve) => {
         if (_.isEmpty(eventEmitter.listeners("RequiresPassword"))) {
-            handleErrorAndReject(reject, "You need to set a listener on 'RequiresPassword' event")
+            reject("You need to set a listener on 'RequiresPassword' event")
         }
-        logger.info(`The hint for your password is '${hint}'`)
         eventEmitter.emit("RequiresPassword", (password) => {
             resolve(password)
         })
@@ -95,7 +80,7 @@ const initPassword = (reject, hint) => {
 const initFirstAndLastNames = (reject) => {
     return new Promise((resolve) => {
         if (_.isEmpty(eventEmitter.listeners("RequiresFirstAndLastNames"))) {
-            handleErrorAndReject(reject, "You need to set a listener on 'RequiresFirstAndLastNames' event")
+            reject("You need to set a listener on 'RequiresFirstAndLastNames' event")
         }
         eventEmitter.emit("RequiresFirstAndLastNames", (firstName, lastName = null) => {
             resolve([firstName, lastName])
@@ -111,22 +96,31 @@ const initFirstAndLastNames = (reject) => {
  * @param {Number}  parameters.apiId - Telegram api id.
  * @param {String}  parameters.apiHash - Telegram api hsah.
  * @param {Boolean} parameters.apiForceSMS - forcing to receive phone code via SMS.
- * @param {String}  parameters.loggerLevel - Telegram client logger level.
+ * @param {String}  parameters.logLevel - Telegram client log level.
  * @returns {Promise}
  */
-const startSession = ({ apiId, apiHash, apiForceSMS = false, loggerLevel = "info" } = {}) => {
+const startSession = ({ apiId, apiHash, apiForceSMS = false, logLevel = "info" } = {}) => {
     /**
-     * Setting logger level
+     * Creating instance of logger.
      */
-    Logger.setLevel(loggerLevel)
+    const logger = new Logger(logLevel)
 
     /**
-     * Path of the `.session` file.
+     * Path of the `.ptl.session` file.
      */
     const sessionPath = path.resolve(".ptl.session")
 
     return new Promise((resolve, reject) => {
         try {
+            /**
+             * Handling error and then rejecting main thread
+             * @param {String} message
+             */
+            const handleErrorAndReject = (message) => {
+                logger.error(message)
+                reject(new Error(message))
+            }
+
             /**
              * Preparing api session from the last session.
              */
@@ -140,25 +134,30 @@ const startSession = ({ apiId, apiHash, apiForceSMS = false, loggerLevel = "info
             const telegramClient = new TelegramClient(
                 apiSession,
                 _.toNumber(apiId || process.env.API_ID),
-                _.toString(apiHash || process.env.API_HASH)
+                _.toString(apiHash || process.env.API_HASH),
+                {
+                    baseLogger: logger,
+                }
             )
 
             return telegramClient
                 .start({
                     phoneNumber: () => {
-                        return initPhoneNumber(reject)
+                        return initPhoneNumber(handleErrorAndReject)
                     },
                     phoneCode: (viaApp) => {
-                        return initPhoneCode(reject, viaApp)
+                        logger.info(`You will receive phone code via ${viaApp ? "App" : "SMS"}`)
+                        return initPhoneCode(handleErrorAndReject)
                     },
                     password: (hint) => {
-                        return initPassword(reject, hint)
+                        logger.info(`The hint for your password is '${hint}'`)
+                        return initPassword(handleErrorAndReject)
                     },
                     firstAndLastNames: () => {
-                        return initFirstAndLastNames(reject)
+                        return initFirstAndLastNames(handleErrorAndReject)
                     },
                     onError: ({ message }) => {
-                        handleErrorAndReject(reject, message)
+                        handleErrorAndReject(message)
                     },
                     forceSMS: apiForceSMS,
                 })
