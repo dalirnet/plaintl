@@ -36,19 +36,27 @@ eventEmitter
         passwordEmitter("password")
     })
     .on("RequiresFirstAndLastNames", (firstAndLastNamesEmitter) => {
-        firstAndLastNamesEmitter(["First name", "Last name"])
+        firstAndLastNamesEmitter("firstname", "lastname")
     })
 ```
 
-Preparing provider [options](https://github.com/dalirnet/plaintl/blob/main/src/index.mjs#L112-L115).
+Preparing provider parameters.
 
-> Obtain `API_ID` and `API_HASH` from [here](https://my.telegram.org/auth).
+> Obtain `apiId` and `apiHash` from [here](https://my.telegram.org/auth).
+
+> For receive phone code via SMS set `apiForceSMS` to **_true_**.
+
+> For `loggerLevel`, one can select between **_error_** , **_warn_** , **_info_** , **_debug_** or **_none_**.
 
 ```javascript
-const providerOptions = {
-    apiId: "API_ID",
-    apiHash: "API_HASH",
-    forceSMS: false,
+const providerParameters = {
+    /* required */
+    apiId: "your-api-id",
+    apiHash: "your-api-hash",
+
+    /* optional */
+    apiForceSMS: false,
+    loggerLevel: "info",
 }
 ```
 
@@ -56,16 +64,18 @@ Start `PlainTL` session.
 
 ```javascript
 // async
-const listener = await startSession(providerOptions)
+await startSession(providerParameters)
 
 // sync
-startSession(providerOptions).then((listener) => {})
+startSession(providerParameters).then(() => {
+    // eventEmitter
+})
 ```
 
 Listen to `Telegram` [Update](#update-events) events.
 
 ```javascript
-listener.on("UpdateShortMessage", (event) => {
+eventEmitter.on("UpdateShortMessage", (event) => {
     console.log(event)
 })
 ```

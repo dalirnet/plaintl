@@ -13,14 +13,14 @@ import { StringSession } from "telegram/sessions/index.js"
 dotenv.config()
 
 /**
- * Creating instance of logger.
- */
-const logger = new Logger()
-
-/**
  * Creating instance of event emitter.
  */
 const eventEmitter = new EventEmitter()
+
+/**
+ * Creating instance of logger.
+ */
+const logger = new Logger()
 
 /**
  * Handling error and then rejecting main thread
@@ -57,10 +57,10 @@ const initPhoneNumber = (reject) => {
  */
 const initPhoneCode = (reject, viaApp) => {
     return new Promise((resolve) => {
-        logger.info(`You will receive phone code via ${viaApp ? "App" : "SMS"}`)
         if (_.isEmpty(eventEmitter.listeners("RequiresPhoneCode"))) {
-            handleErrorAndReject(reject, `You need to set a listener on 'RequiresPhoneCode' event`)
+            handleErrorAndReject(reject, "You need to set a listener on 'RequiresPhoneCode' event")
         }
+        logger.info(`You will receive phone code via ${viaApp ? "App" : "SMS"}`)
         eventEmitter.emit("RequiresPhoneCode", (phoneCode) => {
             resolve(phoneCode)
         })
@@ -76,10 +76,10 @@ const initPhoneCode = (reject, viaApp) => {
  */
 const initPassword = (reject, hint) => {
     return new Promise((resolve) => {
-        logger.info(`The hint for your password is '${hint}'`)
         if (_.isEmpty(eventEmitter.listeners("RequiresPassword"))) {
-            handleErrorAndReject(reject, `You need to set a listener on 'RequiresPassword' event`)
+            handleErrorAndReject(reject, "You need to set a listener on 'RequiresPassword' event")
         }
+        logger.info(`The hint for your password is '${hint}'`)
         eventEmitter.emit("RequiresPassword", (password) => {
             resolve(password)
         })
@@ -95,11 +95,9 @@ const initPassword = (reject, hint) => {
 const initFirstAndLastNames = (reject) => {
     return new Promise((resolve) => {
         if (_.isEmpty(eventEmitter.listeners("RequiresFirstAndLastNames"))) {
-            handleErrorAndReject(reject, `You need to set a listener on 'RequiresFirstAndLastNames' event`)
+            handleErrorAndReject(reject, "You need to set a listener on 'RequiresFirstAndLastNames' event")
         }
-        eventEmitter.emit("RequiresFirstAndLastNames", ([firstName, lastName]) => {
-            logger.info(`First name is '${firstName}'`)
-            logger.info(`Last name is '${lastName}'`)
+        eventEmitter.emit("RequiresFirstAndLastNames", (firstName, lastName = null) => {
             resolve([firstName, lastName])
         })
     })
@@ -108,21 +106,27 @@ const initFirstAndLastNames = (reject) => {
 /**
  * Creating instance of Telegram client to start connection.
  * Starting Telegram client with the last session or creating a new session with authentication parameters.
- * Saving modified env object to env file for next usage.
- * @param {Object} option - Provider options.
- * @param {Number} option.apiId - Telegram api id.
- * @param {String} option.apiHash - Telegram api hsah.
- * @param {Boolean} option.forceSMS - forcing to receive phone code via SMS.
+ * Saving session for next usage.
+ * @param {Object}  parameters - Provider parameterss.
+ * @param {Number}  parameters.apiId - Telegram api id.
+ * @param {String}  parameters.apiHash - Telegram api hsah.
+ * @param {Boolean} parameters.apiForceSMS - forcing to receive phone code via SMS.
+ * @param {String}  parameters.loggerLevel - Telegram client logger level.
  * @returns {Promise}
  */
-const startSession = ({ apiId, apiHash, forceSMS = false } = {}) => {
+const startSession = ({ apiId, apiHash, apiForceSMS = false, loggerLevel = "info" } = {}) => {
+    /**
+     * Setting logger level
+     */
+    Logger.setLevel(loggerLevel)
+
+    /**
+     * Path of the `.session` file.
+     */
+    const sessionPath = path.resolve(".ptl.session")
+
     return new Promise((resolve, reject) => {
         try {
-            /**
-             * Path of the `.session` file.
-             */
-            const sessionPath = path.resolve(".ptl.session")
-
             /**
              * Preparing api session from the last session.
              */
@@ -156,7 +160,7 @@ const startSession = ({ apiId, apiHash, forceSMS = false } = {}) => {
                     onError: ({ message }) => {
                         handleErrorAndReject(reject, message)
                     },
-                    forceSMS,
+                    forceSMS: apiForceSMS,
                 })
                 .then(() => {
                     return fs.promises.writeFile(sessionPath, telegramClient.session.save())
@@ -167,7 +171,7 @@ const startSession = ({ apiId, apiHash, forceSMS = false } = {}) => {
                         eventEmitter.emit(event.className, event)
                     })
 
-                    resolve(eventEmitter)
+                    resolve(telegramClient)
                 })
                 .catch(({ message }) => {
                     handleErrorAndReject(reject, message)

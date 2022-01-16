@@ -29,8 +29,8 @@ eventEmitter
     })
 
 startSession({ apiId: API_ID, apiHash: API_HASH })
-    .then((listener) => {
-        listener.on("UpdateShortMessage", (event) => {
+    .then(() => {
+        eventEmitter.on("UpdateShortMessage", (event) => {
             console.log(event)
         })
     })
