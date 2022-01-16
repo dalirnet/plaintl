@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 
+const _ = require("lodash")
 const input = require("input")
-const { startSession, eventEmitter } = require("./dist/cjs/index.cjs")
+const { startSession, eventEmitter } = require("./dist/index.cjs")
 
 /**
  * Setting default API_ID and API_HASH from public data on github
@@ -27,8 +28,14 @@ eventEmitter
         })
     })
 
-startSession({ apiId: API_ID, apiHash: API_HASH }).then((listener) => {
-    listener.on("UpdateShortMessage", (event) => {
-        console.log(event)
+startSession({ apiId: API_ID, apiHash: API_HASH })
+    .then((listener) => {
+        listener.on("UpdateShortMessage", (event) => {
+            console.log(event)
+        })
     })
-})
+    .catch(({ message }) => {
+        if (!_.includes(message, "400")) {
+            process.exit(1)
+        }
+    })

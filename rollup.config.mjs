@@ -16,12 +16,12 @@ export default [
         plugins: [terser()],
         output: [
             {
-                file: "dist/esm/index.mjs",
+                file: "dist/index.mjs",
                 format: "es",
                 compact: true,
             },
             {
-                file: "dist/cjs/index.cjs",
+                file: "dist/index.cjs",
                 format: "cjs",
                 compact: true,
             },

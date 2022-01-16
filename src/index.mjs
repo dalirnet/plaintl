@@ -23,19 +23,26 @@ const logger = new Logger()
 const eventEmitter = new EventEmitter()
 
 /**
+ * Handling error and then rejecting main thread
+ * @param {String} message
+ */
+const handleErrorAndReject = (reject, message) => {
+    logger.error(message)
+    reject(new Error(message))
+}
+
+/**
  * Preparing phone number.
  * Emitting `RequiresPhoneNumber` event.
  * Waiting for emitting phone number.
  * @returns {Promise}
  */
-const initPhoneNumber = () => {
+const initPhoneNumber = (reject) => {
     return new Promise((resolve) => {
         if (_.isEmpty(eventEmitter.listeners("RequiresPhoneNumber"))) {
-            logger.error(`You need to set a listener on 'RequiresPhoneNumber' event`)
-            process.exit(1)
+            handleErrorAndReject(reject, "You need to set a listener on 'RequiresPhoneNumber' event")
         }
         eventEmitter.emit("RequiresPhoneNumber", (phoneNumber) => {
-            logger.info(`Phone number is '${phoneNumber}'`)
             resolve(phoneNumber)
         })
     })
@@ -48,12 +55,11 @@ const initPhoneNumber = () => {
  * @param {Boolean} viaApp
  * @returns {Promise}
  */
-const initPhoneCode = (viaApp) => {
+const initPhoneCode = (reject, viaApp) => {
     return new Promise((resolve) => {
         logger.info(`You will receive phone code via ${viaApp ? "App" : "SMS"}`)
         if (_.isEmpty(eventEmitter.listeners("RequiresPhoneCode"))) {
-            logger.error(`You need to set a listener on 'RequiresPhoneCode' event`)
-            process.exit(1)
+            handleErrorAndReject(reject, `You need to set a listener on 'RequiresPhoneCode' event`)
         }
         eventEmitter.emit("RequiresPhoneCode", (phoneCode) => {
             resolve(phoneCode)
@@ -68,12 +74,11 @@ const initPhoneCode = (viaApp) => {
  * @param {String} hint
  * @returns {Promise}
  */
-const initPassword = (hint) => {
+const initPassword = (reject, hint) => {
     return new Promise((resolve) => {
         logger.info(`The hint for your password is '${hint}'`)
         if (_.isEmpty(eventEmitter.listeners("RequiresPassword"))) {
-            logger.error(`You need to set a listener on 'RequiresPassword' event`)
-            process.exit(1)
+            handleErrorAndReject(reject, `You need to set a listener on 'RequiresPassword' event`)
         }
         eventEmitter.emit("RequiresPassword", (password) => {
             resolve(password)
@@ -87,11 +92,10 @@ const initPassword = (hint) => {
  * Waiting for emitting first and last names.
  * @param {Promise}
  */
-const initFirstAndLastNames = () => {
+const initFirstAndLastNames = (reject) => {
     return new Promise((resolve) => {
         if (_.isEmpty(eventEmitter.listeners("RequiresFirstAndLastNames"))) {
-            logger.error(`You need to set a listener on 'RequiresFirstAndLastNames' event`)
-            process.exit(1)
+            handleErrorAndReject(reject, `You need to set a listener on 'RequiresFirstAndLastNames' event`)
         }
         eventEmitter.emit("RequiresFirstAndLastNames", ([firstName, lastName]) => {
             logger.info(`First name is '${firstName}'`)
@@ -102,15 +106,6 @@ const initFirstAndLastNames = () => {
 }
 
 /**
- * Handling errors of authentication of Telegram client.
- * @param {Error}
- */
-const initOnError = ({ message }) => {
-    logger.error(message)
-    process.exit(1)
-}
-
-/**
  * Creating instance of Telegram client to start connection.
  * Starting Telegram client with the last session or creating a new session with authentication parameters.
  * Saving modified env object to env file for next usage.
@@ -118,59 +113,69 @@ const initOnError = ({ message }) => {
  * @param {Number} option.apiId - Telegram api id.
  * @param {String} option.apiHash - Telegram api hsah.
  * @param {Boolean} option.forceSMS - forcing to receive phone code via SMS.
- * @returns {EventEmitter}
+ * @returns {Promise}
  */
 const startSession = ({ apiId, apiHash, forceSMS = false } = {}) => {
-    try {
-        /**
-         * Path of the `.session` file.
-         */
-        const sessionPath = path.resolve(".ptl.session")
+    return new Promise((resolve, reject) => {
+        try {
+            /**
+             * Path of the `.session` file.
+             */
+            const sessionPath = path.resolve(".ptl.session")
 
-        /**
-         * Preparing api session from the last session.
-         */
-        const apiSession = new StringSession(
-            fs.existsSync(sessionPath) ? fs.readFileSync(sessionPath, "utf8") : process.env.API_SESSION || ""
-        )
+            /**
+             * Preparing api session from the last session.
+             */
+            const apiSession = new StringSession(
+                fs.existsSync(sessionPath) ? fs.readFileSync(sessionPath, "utf8") : process.env.API_SESSION || ""
+            )
 
-        /**
-         * Creating instance of TelegramClient.
-         */
-        const telegramClient = new TelegramClient(
-            apiSession,
-            _.toNumber(apiId || process.env.API_ID),
-            _.toString(apiHash || process.env.API_HASH)
-        )
+            /**
+             * Creating instance of TelegramClient.
+             */
+            const telegramClient = new TelegramClient(
+                apiSession,
+                _.toNumber(apiId || process.env.API_ID),
+                _.toString(apiHash || process.env.API_HASH)
+            )
 
-        return telegramClient
-            .start({
-                phoneNumber: initPhoneNumber,
-                phoneCode: initPhoneCode,
-                password: initPassword,
-                firstAndLastNames: initFirstAndLastNames,
-                onError: initOnError,
-                forceSMS,
-            })
-            .then(() => {
-                return fs.promises.writeFile(sessionPath, telegramClient.session.save())
-            })
-            .then(() => {
-                logger.info("Successfully connected and save session")
-                telegramClient.addEventHandler((event) => {
-                    eventEmitter.emit(event.className, event)
+            return telegramClient
+                .start({
+                    phoneNumber: () => {
+                        return initPhoneNumber(reject)
+                    },
+                    phoneCode: (viaApp) => {
+                        return initPhoneCode(reject, viaApp)
+                    },
+                    password: (hint) => {
+                        return initPassword(reject, hint)
+                    },
+                    firstAndLastNames: () => {
+                        return initFirstAndLastNames(reject)
+                    },
+                    onError: ({ message }) => {
+                        handleErrorAndReject(reject, message)
+                    },
+                    forceSMS,
                 })
+                .then(() => {
+                    return fs.promises.writeFile(sessionPath, telegramClient.session.save())
+                })
+                .then(() => {
+                    logger.info("Successfully connected and save session")
+                    telegramClient.addEventHandler((event) => {
+                        eventEmitter.emit(event.className, event)
+                    })
 
-                return eventEmitter
-            })
-            .catch(({ message }) => {
-                logger.error(message)
-                process.exit(1)
-            })
-    } catch ({ message }) {
-        logger.error(message)
-        process.exit(1)
-    }
+                    resolve(eventEmitter)
+                })
+                .catch(({ message }) => {
+                    handleErrorAndReject(reject, message)
+                })
+        } catch ({ message }) {
+            handleErrorAndReject(reject, message)
+        }
+    })
 }
 
 export { startSession, eventEmitter }

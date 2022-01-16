@@ -40,7 +40,7 @@ eventEmitter
     })
 ```
 
-Preparing provider [options](https://github.com/dalirnet/plaintl/blob/main/src/index.mjs#L117-L120).
+Preparing provider [options](https://github.com/dalirnet/plaintl/blob/main/src/index.mjs#L112-L115).
 
 > Obtain `API_ID` and `API_HASH` from [here](https://my.telegram.org/auth).
 

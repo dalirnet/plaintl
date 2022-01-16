@@ -1,6 +1,6 @@
 {
     "name": "plaintl",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "description": "A plain telegram listener",
     "main": "./src/index.mjs",
     "bin": {
@@ -8,8 +8,8 @@
     },
     "exports": {
         ".": {
-            "import": "./dist/esm/index.mjs",
-            "require": "./dist/cjs/index.cjs"
+            "import": "./dist/index.mjs",
+            "require": "./dist/index.cjs"
         }
     },
     "scripts": {
