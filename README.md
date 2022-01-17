@@ -44,7 +44,7 @@ Preparing provider parameters.
 
 > Obtain `apiId` and `apiHash` from [here](https://my.telegram.org/auth).
 
-> For receive phone code via SMS set `apiForceSMS` to **_true_**.
+> For receive phone code via SMS set `forceSMS` to **_true_**.
 
 > For `logLevel`, one can select between **_error_** , **_warn_** , **_info_** , **_debug_** or **_none_**.
 
@@ -55,7 +55,7 @@ const providerParameters = {
     apiHash: "your-api-hash",
 
     /* optional */
-    apiForceSMS: false,
+    forceSMS: false,
     logLevel: "info",
 }
 ```
@@ -64,11 +64,11 @@ Start `PlainTL` session.
 
 ```javascript
 // async
-await startSession(providerParameters)
+const client = await startSession(providerParameters)
 
 // sync
-startSession(providerParameters).then(() => {
-    // eventEmitter
+startSession(providerParameters).then((client) => {
+    //
 })
 ```
 

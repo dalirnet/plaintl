@@ -3,9 +3,7 @@ import _ from "lodash"
 import path from "path"
 import dotenv from "dotenv"
 import EventEmitter from "events"
-import { TelegramClient } from "telegram"
-import { Logger } from "telegram/extensions/index.js"
-import { StringSession } from "telegram/sessions/index.js"
+import { TelegramClient, Api, Logger, sessions } from "telegram"
 
 /**
  * Preparing env variables.
@@ -95,11 +93,11 @@ const initFirstAndLastNames = (reject) => {
  * @param {Object}  parameters - Provider parameterss.
  * @param {Number}  parameters.apiId - Telegram api id.
  * @param {String}  parameters.apiHash - Telegram api hsah.
- * @param {Boolean} parameters.apiForceSMS - forcing to receive phone code via SMS.
+ * @param {Boolean} parameters.forceSMS - forcing to receive phone code via SMS.
  * @param {String}  parameters.logLevel - Telegram client log level.
  * @returns {Promise}
  */
-const startSession = ({ apiId, apiHash, apiForceSMS = false, logLevel = "info" } = {}) => {
+const startSession = ({ apiId, apiHash, forceSMS = false, logLevel = "info" } = {}) => {
     /**
      * Creating instance of logger.
      */
@@ -124,14 +122,14 @@ const startSession = ({ apiId, apiHash, apiForceSMS = false, logLevel = "info" }
             /**
              * Preparing api session from the last session.
              */
-            const apiSession = new StringSession(
+            const apiSession = new sessions.StringSession(
                 fs.existsSync(sessionPath) ? fs.readFileSync(sessionPath, "utf8") : process.env.API_SESSION || ""
             )
 
             /**
              * Creating instance of TelegramClient.
              */
-            const telegramClient = new TelegramClient(
+            const client = new TelegramClient(
                 apiSession,
                 _.toNumber(apiId || process.env.API_ID),
                 _.toString(apiHash || process.env.API_HASH),
@@ -140,7 +138,7 @@ const startSession = ({ apiId, apiHash, apiForceSMS = false, logLevel = "info" }
                 }
             )
 
-            return telegramClient
+            return client
                 .start({
                     phoneNumber: () => {
                         return initPhoneNumber(handleErrorAndReject)
@@ -159,18 +157,19 @@ const startSession = ({ apiId, apiHash, apiForceSMS = false, logLevel = "info" }
                     onError: ({ message }) => {
                         handleErrorAndReject(message)
                     },
-                    forceSMS: apiForceSMS,
+                    forceSMS,
                 })
                 .then(() => {
-                    return fs.promises.writeFile(sessionPath, telegramClient.session.save())
+                    return fs.promises.writeFile(sessionPath, client.session.save())
                 })
                 .then(() => {
                     logger.info("Successfully connected and save session")
-                    telegramClient.addEventHandler((event) => {
+
+                    client.addEventHandler((event) => {
                         eventEmitter.emit(event.className, event)
                     })
 
-                    resolve(telegramClient)
+                    resolve(client)
                 })
                 .catch(({ message }) => {
                     handleErrorAndReject(reject, message)
@@ -181,4 +180,5 @@ const startSession = ({ apiId, apiHash, apiForceSMS = false, logLevel = "info" }
     })
 }
 
+export { Api }
 export { startSession, eventEmitter }
