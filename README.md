@@ -90,6 +90,10 @@ npx plaintl
 npx github:dalirnet/plaintl
 ```
 
+### Limitation
+
+-   Not browser-compatible.
+
 ---
 
 #### Update events
