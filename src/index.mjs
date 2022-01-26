@@ -171,10 +171,10 @@ const startSession = ({ apiId, apiHash, forceSMS = false, logLevel = "info" } = 
                     resolve(client)
                 })
                 .catch(({ message }) => {
-                    handleErrorAndReject(reject, message)
+                    handleErrorAndReject(message)
                 })
         } catch ({ message }) {
-            handleErrorAndReject(reject, message)
+            handleErrorAndReject(message)
         }
     })
 }
