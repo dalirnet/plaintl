@@ -109,16 +109,15 @@ const startSession = ({ apiId, apiHash, forceSMS = false, logLevel = "info" } = 
     const sessionPath = path.resolve(".ptl.session")
 
     return new Promise((resolve, reject) => {
+        /**
+         * Handling error and then rejecting main thread
+         * @param {String} message
+         */
+        const handleErrorAndReject = (message) => {
+            logger.error(message)
+            reject(new Error(message))
+        }
         try {
-            /**
-             * Handling error and then rejecting main thread
-             * @param {String} message
-             */
-            const handleErrorAndReject = (message) => {
-                logger.error(message)
-                reject(new Error(message))
-            }
-
             /**
              * Preparing api session from the last session.
              */
